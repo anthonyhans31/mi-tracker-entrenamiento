@@ -89,8 +89,15 @@
     .ex-title { display: flex; align-items: flex-start; gap: 9px; min-width: 0; }
     .ex-title h4 { margin: 0; font-size: 15px; line-height: 1.3; }
     .exercise-check { width: 17px; height: 17px; flex: 0 0 17px; margin: 2px 0 0; accent-color: var(--accent); }
-    .ex-meta { margin-top: 4px; color: var(--muted); font-size: 12px; }
+    .ex-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 7px; margin-top: 4px; color: var(--muted); font-size: 12px; }
     .start-load { color: #f4d783; }
+    .guide-btn {
+      display: inline-flex; align-items: center; gap: 5px; padding: 4px 9px; border: 0; border-radius: 8px;
+      color: #fff; background: #dc2626; font-size: 11px; line-height: 1.35; font-weight: 800; text-decoration: none; white-space: nowrap;
+    }
+    .guide-btn::before { content: "▶"; font-size: 9px; }
+    .guide-btn:hover { filter: brightness(1.12); }
+    .guide-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
     .rest-btn, .minor-btn, .outline-btn, .timer-buttons button, .preset {
       border: 1px solid var(--line); border-radius: 10px; color: var(--text); background: var(--panel-raised);
       font-size: 12px; font-weight: 750;
@@ -335,12 +342,12 @@
         subtitle: 'Sesión 1 de 3 · Gimnasio completo',
         tabNote: 'Pecho + espalda',
         exercises: [
-          { id: 'incline_db', name: 'Press inclinado con mancuernas', load: '20 kg c/u', unit: 'kg c/u', note: 'Carga inicial de referencia.' },
-          { id: 'flat_db', name: 'Press plano con mancuernas', load: '20 kg c/u', unit: 'kg c/u', note: 'Carga inicial de referencia.' },
-          { id: 'pec_deck', name: 'Peck Deck', load: '35–45 kg', unit: 'kg', note: 'Carga inicial de referencia: rango indicado.' },
-          { id: 'high_pulley_pullover', name: 'Pullover en polea alta', load: '40 kg', unit: 'kg', note: 'Carga inicial de referencia.' },
-          { id: 'lat_pulldown', name: 'Jalón al pecho', load: '45 kg', unit: 'kg', note: 'Carga inicial de referencia.' },
-          { id: 'chest_supported_row', name: 'Remo en máquina articulada con apoyo de pecho', load: '50–60 kg', unit: 'kg', note: 'Carga inicial de referencia.' }
+          { id: 'incline_db', name: 'Press inclinado con mancuernas', load: '20 kg c/u', unit: 'kg c/u', note: 'Carga inicial de referencia.', guide: 'https://www.youtube.com/results?search_query=press+inclinado+mancuernas+tecnica' },
+          { id: 'flat_db', name: 'Press plano con mancuernas', load: '20 kg c/u', unit: 'kg c/u', note: 'Carga inicial de referencia.', guide: 'https://www.youtube.com/results?search_query=press+plano+mancuernas+tecnica' },
+          { id: 'pec_deck', name: 'Peck Deck', load: '35–45 kg', unit: 'kg', note: 'Carga inicial de referencia: rango indicado.', guide: 'https://www.youtube.com/results?search_query=peck+deck+tecnica' },
+          { id: 'high_pulley_pullover', name: 'Pullover en polea alta', load: '40 kg', unit: 'kg', note: 'Carga inicial de referencia.', guide: 'https://www.youtube.com/results?search_query=pullover+polea+alta+tecnica' },
+          { id: 'lat_pulldown', name: 'Jalón al pecho', load: '45 kg', unit: 'kg', note: 'Carga inicial de referencia.', guide: 'https://www.youtube.com/results?search_query=jalon+al+pecho+tecnica' },
+          { id: 'chest_supported_row', name: 'Remo en máquina articulada con apoyo de pecho', load: '50–60 kg', unit: 'kg', note: 'Carga inicial de referencia.', guide: 'https://www.youtube.com/results?search_query=remo+maquina+articulada+tecnica' }
         ]
       },
       {
@@ -350,13 +357,13 @@
         subtitle: 'Sesión 2 de 3 · Gimnasio completo',
         tabNote: 'Hombros + brazos',
         exercises: [
-          { id: 'db_military_press', name: 'Press militar con mancuernas', load: '18 kg c/u', unit: 'kg c/u', note: 'Carga inicial de referencia.' },
-          { id: 'lateral_raise', name: 'Elevaciones laterales', load: '10 kg c/u', unit: 'kg c/u', note: 'Carga inicial de referencia.' },
-          { id: 'triceps_flat_bar', name: 'Extensión de tríceps con barra plana', load: '45 kg', unit: 'kg', note: 'Carga inicial de referencia.' },
-          { id: 'triceps_v_grip', name: 'Extensión de tríceps con agarre V', load: '45 kg', unit: 'kg', note: 'Carga inicial de referencia.' },
-          { id: 'triceps_cable', name: 'Extensión de tríceps en polea', load: '15–20 kg', unit: 'kg', note: 'Carga inicial de referencia: rango indicado.' },
-          { id: 'alternating_db_curl', name: 'Curl alterno de bíceps', load: '14 kg c/u', unit: 'kg c/u', note: 'Carga inicial de referencia.' },
-          { id: 'hammer_curl', name: 'Curl martillo', load: '12–14 kg c/u', unit: 'kg c/u', note: 'Carga inicial de referencia: rango indicado.' }
+          { id: 'db_military_press', name: 'Press militar con mancuernas', load: '18 kg c/u', unit: 'kg c/u', note: 'Carga inicial de referencia.', guide: 'https://www.youtube.com/results?search_query=press+militar+mancuernas+sentado' },
+          { id: 'lateral_raise', name: 'Elevaciones laterales', load: '10 kg c/u', unit: 'kg c/u', note: 'Carga inicial de referencia.', guide: 'https://www.youtube.com/results?search_query=elevaciones+laterales+tecnica' },
+          { id: 'triceps_flat_bar', name: 'Extensión de tríceps con barra plana', load: '45 kg', unit: 'kg', note: 'Carga inicial de referencia.', guide: 'https://www.youtube.com/results?search_query=extension+triceps+barra+plana' },
+          { id: 'triceps_v_grip', name: 'Extensión de tríceps con agarre V', load: '45 kg', unit: 'kg', note: 'Carga inicial de referencia.', guide: 'https://www.youtube.com/results?search_query=extension+triceps+agarre+v' },
+          { id: 'triceps_cable', name: 'Extensión de tríceps en polea', load: '15–20 kg', unit: 'kg', note: 'Carga inicial de referencia: rango indicado.', guide: 'https://www.youtube.com/results?search_query=extension+triceps+polea+cuerda' },
+          { id: 'alternating_db_curl', name: 'Curl alterno de bíceps', load: '14 kg c/u', unit: 'kg c/u', note: 'Carga inicial de referencia.', guide: 'https://www.youtube.com/results?search_query=curl+alterno+mancuernas' },
+          { id: 'hammer_curl', name: 'Curl martillo', load: '12–14 kg c/u', unit: 'kg c/u', note: 'Carga inicial de referencia: rango indicado.', guide: 'https://www.youtube.com/results?search_query=curl+martillo+mancuernas' }
         ]
       },
       {
@@ -366,11 +373,11 @@
         subtitle: 'Sesión 3 de 3 · Gimnasio completo',
         tabNote: 'Piernas',
         exercises: [
-          { id: 'barbell_squat', name: 'Sentadilla con barra', load: '60 kg total', unit: 'kg total', note: 'Carga inicial de referencia, peso total.' },
-          { id: 'hack_squat', name: 'Sentadilla Hack', load: '40 kg', unit: 'kg', note: 'Carga inicial de referencia.' },
-          { id: 'leg_extension', name: 'Extensión de cuádriceps', load: '35–40 kg', unit: 'kg', note: 'Carga inicial de referencia: rango indicado.' },
-          { id: 'hamstring_curl', name: 'Curl de femorales', load: '35–45 kg', unit: 'kg', note: 'Carga inicial de referencia: rango indicado.' },
-          { id: 'calf_raise', name: 'Elevación de pantorrillas', load: '40–50 kg', unit: 'kg', note: 'Carga inicial de referencia: rango indicado.' }
+          { id: 'barbell_squat', name: 'Sentadilla con barra', load: '60 kg total', unit: 'kg total', note: 'Carga inicial de referencia, peso total.', guide: 'https://www.youtube.com/results?search_query=sentadilla+con+barra+tecnica' },
+          { id: 'hack_squat', name: 'Sentadilla Hack', load: '40 kg', unit: 'kg', note: 'Carga inicial de referencia.', guide: 'https://www.youtube.com/results?search_query=sentadilla+hack+tecnica+maquina' },
+          { id: 'leg_extension', name: 'Extensión de cuádriceps', load: '35–40 kg', unit: 'kg', note: 'Carga inicial de referencia: rango indicado.', guide: 'https://www.youtube.com/results?search_query=extension+de+cuadriceps+maquina' },
+          { id: 'hamstring_curl', name: 'Curl de femorales', load: '35–45 kg', unit: 'kg', note: 'Carga inicial de referencia: rango indicado.', guide: 'https://www.youtube.com/results?search_query=curl+femoral+maquina' },
+          { id: 'calf_raise', name: 'Elevación de pantorrillas', load: '40–50 kg', unit: 'kg', note: 'Carga inicial de referencia: rango indicado.', guide: 'https://www.youtube.com/results?search_query=elevacion+pantorrillas+de+pie' }
         ]
       }
     ];
@@ -562,6 +569,16 @@
       load.className = 'start-load';
       load.textContent = 'Carga inicial: ' + exercise.load;
       meta.appendChild(load);
+      if (exercise.guide) {
+        var guide = document.createElement('a');
+        guide.className = 'guide-btn';
+        guide.href = exercise.guide;
+        guide.target = '_blank';
+        guide.rel = 'noopener noreferrer';
+        guide.textContent = 'Ver guía';
+        guide.setAttribute('aria-label', 'Ver guía de ' + exercise.name + ' en YouTube');
+        meta.appendChild(guide);
+      }
       title.appendChild(heading);
       title.appendChild(meta);
       titleBox.appendChild(selector);
