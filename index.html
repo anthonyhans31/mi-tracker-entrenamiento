@@ -1,0 +1,1091 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#111827">
+  <meta name="description" content="Rastreador personal de entrenamiento con almacenamiento local.">
+  <title>Tracker de entrenamiento</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #111827;
+      --panel: #1F2937;
+      --panel-raised: #263244;
+      --panel-deep: #151e2c;
+      --line: #374151;
+      --text: #F9FAFB;
+      --muted: #AAB3C2;
+      --accent: #FBBF24;
+      --accent-ink: #211803;
+      --good: #86efac;
+      --danger: #fca5a5;
+      --radius: 18px;
+      --shadow: 0 16px 42px #0003;
+    }
+    * { box-sizing: border-box; }
+    html { min-width: 320px; background: var(--bg); }
+    body {
+      margin: 0;
+      color: var(--text);
+      background:
+        radial-gradient(ellipse at 78% -12%, #4a3a12 0, transparent 34%),
+        var(--bg);
+      font: 15px/1.5 Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    button, input { font: inherit; }
+    button { color: inherit; cursor: pointer; }
+    button:focus-visible, input:focus-visible, summary:focus-visible {
+      outline: 3px solid #FBBF24aa;
+      outline-offset: 2px;
+    }
+    .wrap { width: min(1180px, 100%); margin: 0 auto; padding: 24px 20px 54px; }
+    .top { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin-bottom: 20px; }
+    .brand { display: flex; align-items: center; gap: 13px; min-width: 0; }
+    .logo {
+      display: grid; place-items: center; flex: 0 0 48px; height: 48px;
+      border-radius: 15px; color: var(--accent-ink); background: var(--accent);
+      font-size: 17px; font-weight: 950; letter-spacing: -.06em;
+    }
+    .eyebrow { color: var(--accent); font-size: 11px; font-weight: 850; letter-spacing: .15em; text-transform: uppercase; }
+    h1 { margin: 2px 0 0; font-size: clamp(25px, 4vw, 38px); line-height: 1.08; letter-spacing: -.04em; }
+    .topnote { max-width: 310px; color: var(--muted); text-align: right; font-size: 12px; }
+    .privacy-line { display: inline-flex; align-items: center; gap: 7px; color: var(--good); font-weight: 750; }
+    .layout { display: grid; grid-template-columns: minmax(0, 1fr) 310px; gap: 18px; align-items: start; }
+    .main, .side { min-width: 0; }
+    .hero, .card, .side-card {
+      border: 1px solid var(--line); border-radius: var(--radius);
+      background: linear-gradient(145deg, #202b3b, var(--panel));
+      box-shadow: var(--shadow);
+    }
+    .hero { display: flex; align-items: center; justify-content: space-between; gap: 15px; padding: 19px 20px; margin-bottom: 13px; }
+    .hero h2 { margin: 0 0 3px; font-size: 19px; }
+    .hero p { margin: 0; color: var(--muted); font-size: 13px; }
+    .pill { display: inline-flex; align-items: center; justify-content: center; border: 1px solid #8b6918; border-radius: 999px; padding: 7px 12px; color: var(--accent); background: #382d12; font-size: 11px; font-weight: 850; letter-spacing: .05em; white-space: nowrap; }
+    .tabs { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 14px; }
+    .tab {
+      min-width: 0; padding: 11px 10px; border: 1px solid var(--line); border-radius: 13px;
+      color: var(--muted); background: #182231; text-align: left; font-weight: 800;
+      transition: border-color .15s, background .15s, transform .15s;
+    }
+    .tab:hover { border-color: #9a7c32; transform: translateY(-1px); }
+    .tab.active { color: var(--accent-ink); border-color: var(--accent); background: var(--accent); }
+    .tab small { display: block; margin-top: 2px; font-size: 11px; font-weight: 600; opacity: .82; }
+    .card { padding: 18px; margin-bottom: 14px; }
+    .section-head { display: flex; justify-content: space-between; align-items: center; gap: 13px; margin-bottom: 12px; }
+    .section-head h3, .side-card h3 { margin: 0; font-size: 17px; }
+    .section-head p { margin: 3px 0 0; color: var(--muted); font-size: 12px; }
+    .count { color: var(--muted); font-size: 12px; white-space: nowrap; }
+    .meta-controls { display: flex; align-items: center; gap: 12px; }
+    .date-box { display: grid; gap: 3px; color: var(--muted); font-size: 10px; }
+    .date-box input, .timer-setting input, .field input, .metric-grid input {
+      min-width: 0; border: 1px solid var(--line); border-radius: 9px; color: var(--text);
+      background: var(--panel-deep);
+    }
+    .date-box input { padding: 6px 8px; font-size: 12px; }
+    .exercise { padding: 16px 0; border-top: 1px solid #344052; }
+    .exercise:first-child { border-top: 0; }
+    .ex-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
+    .ex-title { display: flex; align-items: flex-start; gap: 9px; min-width: 0; }
+    .ex-title h4 { margin: 0; font-size: 15px; line-height: 1.3; }
+    .exercise-check { width: 17px; height: 17px; flex: 0 0 17px; margin: 2px 0 0; accent-color: var(--accent); }
+    .ex-meta { margin-top: 4px; color: var(--muted); font-size: 12px; }
+    .start-load { color: #f4d783; }
+    .rest-btn, .minor-btn, .outline-btn, .timer-buttons button, .preset {
+      border: 1px solid var(--line); border-radius: 10px; color: var(--text); background: var(--panel-raised);
+      font-size: 12px; font-weight: 750;
+    }
+    .rest-btn { flex: 0 0 auto; padding: 8px 10px; }
+    .rest-btn:hover, .minor-btn:hover, .outline-btn:hover, .timer-buttons button:hover, .preset:hover { border-color: var(--accent); }
+    .sets { display: grid; gap: 7px; margin-top: 12px; }
+    .set-row { display: grid; grid-template-columns: 58px repeat(3, minmax(0, 1fr)); gap: 8px; align-items: center; }
+    .set-label { color: var(--muted); font-size: 12px; font-weight: 750; }
+    .field { position: relative; min-width: 0; }
+    .field label { position: absolute; top: 3px; left: 9px; color: #a5afbf; font-size: 9px; line-height: 1; pointer-events: none; }
+    .field input { width: 100%; padding: 17px 8px 5px; outline: 0; }
+    .field input:focus, .metric-grid input:focus, .date-box input:focus, .timer-setting input:focus { border-color: var(--accent); box-shadow: 0 0 0 2px #FBBF2420; }
+    .field input:disabled { opacity: .4; }
+    .previous, .exercise-note { margin-top: 7px; color: var(--muted); font-size: 11px; }
+    .exercise-note { color: #d7dce5; font-size: 12px; }
+    .exercise.excluded .sets { opacity: .5; }
+    .session-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding-top: 14px; border-top: 1px solid #344052; }
+    .status { color: var(--muted); font-size: 12px; }
+    .save-btn { border: 0; border-radius: 12px; padding: 11px 15px; color: var(--accent-ink); background: var(--accent); font-weight: 900; }
+    .save-btn:hover { filter: brightness(1.05); }
+    .save-btn:disabled { opacity: .42; cursor: not-allowed; }
+    .side-card { padding: 16px; margin-bottom: 14px; }
+    .side-card h3 { margin-bottom: 10px; font-size: 15px; }
+    .timerbox { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel-deep); }
+    .timer { font-variant-numeric: tabular-nums; font-size: 31px; line-height: 1.1; font-weight: 900; letter-spacing: .04em; }
+    .timer-buttons { display: flex; gap: 6px; }
+    .timer-buttons button { padding: 7px 9px; }
+    .timer-buttons .stop { color: var(--danger); }
+    .timer-setting { display: grid; grid-template-columns: 1fr 76px; align-items: center; gap: 8px; margin-top: 10px; color: var(--muted); font-size: 12px; }
+    .timer-setting input { width: 100%; padding: 7px 8px; }
+    .presets { display: flex; gap: 7px; margin-top: 8px; }
+    .preset { flex: 1; padding: 7px; }
+    .tip { margin-top: 10px; padding: 10px 11px; border-left: 3px solid var(--accent); border-radius: 5px 10px 10px 5px; color: #d1d7e0; background: #202a37; font-size: 12px; }
+    .tip strong { color: var(--text); }
+    .sound-row { display: flex; align-items: center; gap: 8px; margin-top: 10px; color: var(--muted); font-size: 12px; }
+    .sound-row input { accent-color: var(--accent); }
+    .notify-btn { width: 100%; margin-top: 9px; padding: 8px 10px; border: 1px solid var(--line); border-radius: 10px; color: var(--text); background: var(--panel-raised); font-weight: 750; font-size: 12px; }
+    .notify-status { display: block; margin-top: 6px; color: var(--muted); font-size: 11px; }
+    .supplement { border-color: #6f5b26; background: linear-gradient(145deg, #332b19, #242a32); }
+    .supplement p { margin: 0; color: #e8dfc9; font-size: 12px; }
+    .supplement strong { color: var(--accent); }
+    .metric-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin: 12px 0; }
+    .metric-grid label { display: grid; gap: 5px; color: var(--muted); font-size: 12px; }
+    .metric-grid input { width: 100%; padding: 10px; }
+    .metric-actions, .history-actions { display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+    .metric-actions { margin: 12px 0 8px; }
+    .table-wrap { overflow-x: auto; }
+    .data-table { width: 100%; min-width: 470px; border-collapse: collapse; font-size: 12px; }
+    .data-table th, .data-table td { padding: 9px 8px; border-bottom: 1px solid var(--line); text-align: left; white-space: nowrap; }
+    .data-table th { color: var(--muted); font-weight: 750; }
+    .history-item { padding: 11px 0; border-top: 1px solid #344052; }
+    .history-item:first-child { border-top: 0; }
+    .history-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+    .history-head strong { font-size: 13px; }
+    .history-head span { color: var(--muted); font-size: 11px; }
+    .history-item details { margin-top: 5px; color: var(--muted); font-size: 12px; }
+    .history-item summary { cursor: pointer; }
+    .history-item ul { margin: 7px 0 0; padding-left: 18px; }
+    .minor-btn, .outline-btn { padding: 8px 9px; }
+    .history-actions .minor-btn { white-space: nowrap; }
+    .delete { padding: 3px; border: 0; color: var(--danger); background: transparent; font-size: 11px; text-decoration: underline; }
+    .backup-row { display: grid; gap: 8px; }
+    .backup-row input { display: none; }
+    .backup-row .outline-btn { width: 100%; }
+    .empty { padding: 8px 0; color: var(--muted); font-size: 13px; }
+    .foot { margin-top: 18px; color: #9aa5b6; text-align: center; font-size: 11px; }
+    .toast { position: fixed; z-index: 5; left: 50%; bottom: 20px; max-width: calc(100% - 24px); padding: 11px 16px; border-radius: 11px; color: var(--accent-ink); background: var(--accent); box-shadow: var(--shadow); font-weight: 850; text-align: center; opacity: 0; pointer-events: none; transform: translate(-50%, 14px); transition: opacity .2s, transform .2s; }
+    .toast.show { opacity: 1; transform: translate(-50%, 0); }
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .side { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+      .side-card { margin: 0; }
+      .side-card.history { grid-column: 1 / -1; }
+    }
+    @media (max-width: 600px) {
+      .wrap { padding: 17px 12px 38px; }
+      .top { align-items: flex-start; }
+      .topnote { max-width: 120px; font-size: 10px; }
+      .hero { align-items: flex-start; flex-direction: column; padding: 16px; }
+      .tabs { gap: 5px; }
+      .tab { padding: 9px 7px; font-size: 12px; }
+      .tab small { font-size: 10px; }
+      .card { padding: 14px; }
+      .section-head { align-items: flex-start; flex-direction: column; }
+      .meta-controls { width: 100%; justify-content: space-between; }
+      .set-row { grid-template-columns: 45px repeat(3, minmax(0, 1fr)); gap: 5px; }
+      .field input { padding-right: 5px; padding-left: 6px; font-size: 13px; }
+      .field label { left: 7px; font-size: 8px; }
+      .ex-head { gap: 6px; }
+      .ex-title h4 { font-size: 14px; }
+      .rest-btn { padding: 7px; font-size: 10px; }
+      .session-actions { align-items: stretch; flex-direction: column; }
+      .save-btn { width: 100%; }
+      .side { grid-template-columns: 1fr; }
+      .side-card.history { grid-column: auto; }
+      .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .history-actions { width: 100%; }
+      .history-actions .minor-btn { flex: 1; font-size: 10px; padding: 7px; }
+      .metric-actions .status { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <div class="brand">
+        <div class="logo" aria-hidden="true">GYM</div>
+        <div>
+          <div class="eyebrow">Entrenamiento · Hipertrofia</div>
+          <h1>Mi tracker de entrenamiento</h1>
+        </div>
+      </div>
+      <div class="topnote">
+        3 sesiones por semana · aprox. 60–90 min<br>
+        <span class="privacy-line">● Registros solo en este navegador</span>
+      </div>
+    </header>
+
+    <div class="layout">
+      <main class="main">
+        <section class="hero" aria-live="polite">
+          <div>
+            <h2 id="dayTitle">Día 1 · Pecho y espalda</h2>
+            <p id="daySubtitle">Sesión 1 de 3 · Gimnasio completo</p>
+          </div>
+          <span class="pill" id="dayBadge">DÍA 1</span>
+        </section>
+
+        <nav class="tabs" id="tabs" aria-label="Seleccionar sesión"></nav>
+
+        <section class="card" aria-labelledby="workoutTitle">
+          <div class="section-head">
+            <div>
+              <h3 id="workoutTitle">Ejercicios de la sesión</h3>
+              <p>Cuatro series por ejercicio. Registra las repeticiones que completes; no se fijaron objetivos de repeticiones.</p>
+            </div>
+            <div class="meta-controls">
+              <span class="count" id="progress">0 ejercicios con reps</span>
+              <label class="date-box">Fecha de sesión<input id="sessionDate" type="date"></label>
+            </div>
+          </div>
+          <div id="exerciseList"></div>
+          <div class="session-actions">
+            <span class="status" id="draftStatus" role="status">Los borradores se guardan automáticamente en este navegador.</span>
+            <button class="save-btn" id="saveWorkout" type="button" disabled>Guardar sesión</button>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="metricsTitle">
+          <div class="section-head">
+            <div>
+              <h3 id="metricsTitle">Medidas corporales</h3>
+              <p>Agrega una fecha y al menos una medida. La estatura se guarda en centímetros.</p>
+            </div>
+            <span class="pill">OPCIONAL</span>
+          </div>
+          <div class="metric-grid">
+            <label>Fecha<input id="metricDate" type="date"></label>
+            <label>Peso · kg<input id="metricWeight" type="number" min="0" step="0.1" inputmode="decimal" placeholder="Opcional"></label>
+            <label>Estatura · cm<input id="metricHeight" type="number" min="0" step="0.1" inputmode="decimal" placeholder="Opcional"></label>
+            <label>Grasa corporal · %<input id="metricBodyFat" type="number" min="0" max="75" step="0.1" inputmode="decimal" placeholder="Opcional"></label>
+          </div>
+          <div class="metric-actions">
+            <button class="save-btn" id="saveMetric" type="button">Guardar medidas</button>
+            <span class="status" id="metricStatus">Se guardan solo en este navegador.</span>
+          </div>
+          <div class="table-wrap" id="measurementTable"></div>
+        </section>
+      </main>
+
+      <aside class="side">
+        <section class="side-card">
+          <h3>Temporizador de descanso</h3>
+          <div class="timerbox">
+            <div>
+              <div class="eyebrow">Tiempo restante</div>
+              <div class="timer" id="timerDisplay" role="timer" aria-live="off">01:30</div>
+            </div>
+            <div class="timer-buttons">
+              <button id="timerStart" type="button">Iniciar</button>
+              <button id="timerStop" class="stop" type="button">Detener</button>
+            </div>
+          </div>
+          <label class="timer-setting"><span>Duración · segundos</span><input id="timerDuration" type="number" min="30" max="600" step="15" value="90" inputmode="numeric"></label>
+          <div class="presets" aria-label="Duraciones rápidas">
+            <button class="preset" data-timer="90" type="button">90 s</button>
+            <button class="preset" data-timer="120" type="button">2 min</button>
+          </div>
+          <label class="sound-row"><input id="soundEnabled" type="checkbox"> Alerta sonora corta (2 s)</label>
+          <button class="notify-btn" id="notifyButton" type="button">Activar notificaciones</button>
+          <span class="notify-status" id="notifyStatus">Notificaciones desactivadas.</span>
+          <div class="tip"><strong>Inicio:</strong> 90 segundos. Puedes cambiarlo desde el campo o con los botones rápidos; cada ejercicio también inicia este descanso.</div>
+        </section>
+
+        <section class="side-card supplement">
+          <h3>Después de entrenar</h3>
+          <p>Tu batido: <strong>1 scoop de proteína + 5 g de creatina</strong>, juntos inmediatamente después de entrenar.</p>
+        </section>
+
+        <section class="side-card history">
+          <div class="section-head">
+            <h3>Historial guardado</h3>
+            <div class="history-actions">
+              <button class="minor-btn" id="exportCsvBtn" type="button">CSV para Excel</button>
+              <button class="minor-btn" id="exportBtn" type="button">Respaldo JSON</button>
+            </div>
+          </div>
+          <div id="historyList"></div>
+          <div class="tip">El CSV reúne las sesiones y medidas guardadas. El respaldo JSON incluye también borradores y preferencias del temporizador.</div>
+        </section>
+
+        <section class="side-card">
+          <h3>Respaldo y restauración</h3>
+          <div class="backup-row">
+            <button class="outline-btn" id="importBtn" type="button">Importar respaldo JSON</button>
+            <input type="file" id="importFile" accept="application/json,.json">
+            <span class="status">Descarga un respaldo antes de cambiar de dispositivo o borrar los datos del navegador.</span>
+          </div>
+        </section>
+      </aside>
+    </div>
+    <p class="foot">Sin cuentas ni sincronización: tus registros quedan en el almacenamiento local de este navegador y dispositivo. No se envían a GitHub Pages ni a ningún servicio. Si cambias de dispositivo o navegador, restaura tu respaldo JSON.</p>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script>
+  (function () {
+    'use strict';
+
+    // Clave nueva y genérica para esta versión; los registros empiezan vacíos.
+    var STORE_KEY = 'gym_tracker_local_v1';
+    var EXERCISE_SETS = 4;
+    var days = [
+      {
+        id: 'day1',
+        name: 'Día 1',
+        title: 'Día 1 · Pecho y espalda',
+        subtitle: 'Sesión 1 de 3 · Gimnasio completo',
+        tabNote: 'Pecho + espalda',
+        exercises: [
+          { id: 'incline_db', name: 'Press inclinado con mancuernas', load: '20 kg c/u', unit: 'kg c/u', note: 'Carga inicial de referencia.' },
+          { id: 'flat_db', name: 'Press plano con mancuernas', load: '20 kg c/u', unit: 'kg c/u', note: 'Carga inicial de referencia.' },
+          { id: 'pec_deck', name: 'Peck Deck', load: '35–45 kg', unit: 'kg', note: 'Carga inicial de referencia: rango indicado.' },
+          { id: 'high_pulley_pullover', name: 'Pullover en polea alta', load: '40 kg', unit: 'kg', note: 'Carga inicial de referencia.' },
+          { id: 'lat_pulldown', name: 'Jalón al pecho', load: '45 kg', unit: 'kg', note: 'Carga inicial de referencia.' },
+          { id: 'chest_supported_row', name: 'Remo en máquina articulada con apoyo de pecho', load: '50–60 kg', unit: 'kg', note: 'Carga inicial de referencia.' }
+        ]
+      },
+      {
+        id: 'day2',
+        name: 'Día 2',
+        title: 'Día 2 · Hombros y brazos',
+        subtitle: 'Sesión 2 de 3 · Gimnasio completo',
+        tabNote: 'Hombros + brazos',
+        exercises: [
+          { id: 'db_military_press', name: 'Press militar con mancuernas', load: '18 kg c/u', unit: 'kg c/u', note: 'Carga inicial de referencia.' },
+          { id: 'lateral_raise', name: 'Elevaciones laterales', load: '10 kg c/u', unit: 'kg c/u', note: 'Carga inicial de referencia.' },
+          { id: 'triceps_flat_bar', name: 'Extensión de tríceps con barra plana', load: '45 kg', unit: 'kg', note: 'Carga inicial de referencia.' },
+          { id: 'triceps_v_grip', name: 'Extensión de tríceps con agarre V', load: '45 kg', unit: 'kg', note: 'Carga inicial de referencia.' },
+          { id: 'triceps_cable', name: 'Extensión de tríceps en polea', load: '15–20 kg', unit: 'kg', note: 'Carga inicial de referencia: rango indicado.' },
+          { id: 'alternating_db_curl', name: 'Curl alterno de bíceps', load: '14 kg c/u', unit: 'kg c/u', note: 'Carga inicial de referencia.' },
+          { id: 'hammer_curl', name: 'Curl martillo', load: '12–14 kg c/u', unit: 'kg c/u', note: 'Carga inicial de referencia: rango indicado.' }
+        ]
+      },
+      {
+        id: 'day3',
+        name: 'Día 3',
+        title: 'Día 3 · Piernas',
+        subtitle: 'Sesión 3 de 3 · Gimnasio completo',
+        tabNote: 'Piernas',
+        exercises: [
+          { id: 'barbell_squat', name: 'Sentadilla con barra', load: '60 kg total', unit: 'kg total', note: 'Carga inicial de referencia, peso total.' },
+          { id: 'hack_squat', name: 'Sentadilla Hack', load: '40 kg', unit: 'kg', note: 'Carga inicial de referencia.' },
+          { id: 'leg_extension', name: 'Extensión de cuádriceps', load: '35–40 kg', unit: 'kg', note: 'Carga inicial de referencia: rango indicado.' },
+          { id: 'hamstring_curl', name: 'Curl de femorales', load: '35–45 kg', unit: 'kg', note: 'Carga inicial de referencia: rango indicado.' },
+          { id: 'calf_raise', name: 'Elevación de pantorrillas', load: '40–50 kg', unit: 'kg', note: 'Carga inicial de referencia: rango indicado.' }
+        ]
+      }
+    ];
+
+    var $ = function (selector) { return document.querySelector(selector); };
+    var today = function () {
+      var date = new Date();
+      return date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+    };
+    var makeId = function () {
+      if (window.crypto && typeof window.crypto.randomUUID === 'function') return window.crypto.randomUUID();
+      return String(Date.now()) + '-' + Math.random().toString(36).slice(2);
+    };
+    var isObject = function (value) { return value !== null && typeof value === 'object' && !Array.isArray(value); };
+    var clamp = function (value, min, max) { return Math.min(max, Math.max(min, Math.round(value))); };
+    var freshState = function () {
+      return {
+        drafts: {},
+        history: [],
+        measurements: [],
+        settings: { restSeconds: 90, soundEnabled: true, notificationsEnabled: false }
+      };
+    };
+    var readState = function () {
+      try {
+        var stored = JSON.parse(localStorage.getItem(STORE_KEY) || 'null');
+        if (!isObject(stored)) return freshState();
+        var settings = isObject(stored.settings) ? stored.settings : {};
+        return {
+          drafts: isObject(stored.drafts) ? stored.drafts : {},
+          history: Array.isArray(stored.history) ? stored.history : [],
+          measurements: Array.isArray(stored.measurements) ? stored.measurements : [],
+          settings: {
+            restSeconds: clamp(Number(settings.restSeconds) || 90, 30, 600),
+            soundEnabled: settings.soundEnabled !== false,
+            notificationsEnabled: settings.notificationsEnabled === true
+          }
+        };
+      } catch (error) {
+        return freshState();
+      }
+    };
+
+    var state = readState();
+    var activeDay = 0;
+    var timerLeft = state.settings.restSeconds;
+    var timerId = null;
+    var toastId = null;
+    var audioContext = null;
+
+    function persist(statusMessage) {
+      try {
+        localStorage.setItem(STORE_KEY, JSON.stringify(state));
+        if (statusMessage) $('#draftStatus').textContent = statusMessage;
+        return true;
+      } catch (error) {
+        if (statusMessage) $('#draftStatus').textContent = 'No se pudo guardar localmente. Descarga un respaldo y revisa el espacio disponible.';
+        return false;
+      }
+    }
+
+    function toast(message) {
+      var element = $('#toast');
+      element.textContent = message;
+      element.classList.add('show');
+      clearTimeout(toastId);
+      toastId = setTimeout(function () { element.classList.remove('show'); }, 2700);
+    }
+
+    function currentDay() { return days[activeDay]; }
+
+    function getDraft() {
+      var day = currentDay();
+      if (!isObject(state.drafts[day.id])) state.drafts[day.id] = { date: today(), entries: {} };
+      if (!isObject(state.drafts[day.id].entries)) state.drafts[day.id].entries = {};
+      return state.drafts[day.id];
+    }
+
+    function lastFor(exerciseId) {
+      for (var i = 0; i < state.history.length; i += 1) {
+        var entries = Array.isArray(state.history[i].entries) ? state.history[i].entries : [];
+        for (var j = 0; j < entries.length; j += 1) {
+          if (entries[j].id === exerciseId) return entries[j];
+        }
+      }
+      return null;
+    }
+
+    function renderTabs() {
+      var tabs = $('#tabs');
+      tabs.replaceChildren();
+      days.forEach(function (day, index) {
+        var button = document.createElement('button');
+        button.type = 'button';
+        button.className = 'tab' + (index === activeDay ? ' active' : '');
+        button.setAttribute('aria-current', index === activeDay ? 'page' : 'false');
+        button.appendChild(document.createTextNode(day.name));
+        var small = document.createElement('small');
+        small.textContent = day.tabNote;
+        button.appendChild(small);
+        button.addEventListener('click', function () {
+          activeDay = index;
+          render();
+        });
+        tabs.appendChild(button);
+      });
+    }
+
+    function setRowDisabled(row, disabled) {
+      row.querySelectorAll('input').forEach(function (input) { input.disabled = disabled; });
+    }
+
+    function makeSetRow(day, exercise, index, value) {
+      var row = document.createElement('div');
+      row.className = 'set-row';
+      var label = document.createElement('span');
+      label.className = 'set-label';
+      label.textContent = 'Serie ' + (index + 1);
+      row.appendChild(label);
+      [
+        { field: 'weight', title: 'Carga · ' + exercise.unit, type: 'number', min: '0', step: '0.1', inputmode: 'decimal' },
+        { field: 'reps', title: 'Reps', type: 'number', min: '0', step: '1', inputmode: 'numeric' },
+        { field: 'rir', title: 'RIR opcional', type: 'number', min: '0', max: '10', step: '1', inputmode: 'numeric' }
+      ].forEach(function (config) {
+        var wrapper = document.createElement('div');
+        wrapper.className = 'field';
+        var id = config.field + '_' + exercise.id + '_' + index;
+        var fieldLabel = document.createElement('label');
+        fieldLabel.setAttribute('for', id);
+        fieldLabel.textContent = config.title;
+        var input = document.createElement('input');
+        input.id = id;
+        input.type = config.type;
+        input.min = config.min;
+        input.step = config.step;
+        if (config.max) input.max = config.max;
+        input.inputMode = config.inputmode;
+        input.dataset.exercise = exercise.id;
+        input.dataset.set = String(index);
+        input.dataset.field = config.field;
+        input.setAttribute('aria-label', exercise.name + ', serie ' + (index + 1) + ', ' + config.title);
+        input.value = value && value[config.field] != null ? value[config.field] : '';
+        input.addEventListener('input', function () { updateDraftInput(day, exercise, input); });
+        wrapper.appendChild(fieldLabel);
+        wrapper.appendChild(input);
+        row.appendChild(wrapper);
+      });
+      return row;
+    }
+
+    function updateDraftInput(day, exercise, input) {
+      var draft = getDraft();
+      draft.date = $('#sessionDate').value || today();
+      var entry = draft.entries[exercise.id];
+      if (!isObject(entry)) {
+        entry = { id: exercise.id, name: exercise.name, unit: exercise.unit, enabled: true, sets: [] };
+        draft.entries[exercise.id] = entry;
+      }
+      if (!Array.isArray(entry.sets)) entry.sets = [];
+      var setIndex = Number(input.dataset.set);
+      if (!isObject(entry.sets[setIndex])) entry.sets[setIndex] = { weight: '', reps: '', rir: '' };
+      entry.sets[setIndex][input.dataset.field] = input.value;
+      persist('Borrador guardado automáticamente en este navegador.');
+      updateProgress();
+    }
+
+    function renderExercise(day, exercise, draft) {
+      var saved = isObject(draft.entries[exercise.id]) ? draft.entries[exercise.id] : {};
+      var checked = saved.enabled !== false;
+      var article = document.createElement('article');
+      article.className = 'exercise' + (checked ? '' : ' excluded');
+
+      var head = document.createElement('div');
+      head.className = 'ex-head';
+      var titleBox = document.createElement('div');
+      titleBox.className = 'ex-title';
+      var selector = document.createElement('input');
+      selector.type = 'checkbox';
+      selector.className = 'exercise-check';
+      selector.checked = checked;
+      selector.setAttribute('aria-label', 'Incluir ' + exercise.name + ' en esta sesión');
+      var title = document.createElement('div');
+      var heading = document.createElement('h4');
+      heading.textContent = exercise.name;
+      var meta = document.createElement('div');
+      meta.className = 'ex-meta';
+      meta.appendChild(document.createTextNode(EXERCISE_SETS + ' series · '));
+      var load = document.createElement('span');
+      load.className = 'start-load';
+      load.textContent = 'Carga inicial: ' + exercise.load;
+      meta.appendChild(load);
+      title.appendChild(heading);
+      title.appendChild(meta);
+      titleBox.appendChild(selector);
+      titleBox.appendChild(title);
+      var restButton = document.createElement('button');
+      restButton.type = 'button';
+      restButton.className = 'rest-btn';
+      restButton.textContent = 'Descanso ' + formatClock(state.settings.restSeconds);
+      restButton.setAttribute('aria-label', 'Iniciar descanso de ' + state.settings.restSeconds + ' segundos');
+      restButton.addEventListener('click', function () { startTimer(state.settings.restSeconds); });
+      head.appendChild(titleBox);
+      head.appendChild(restButton);
+      article.appendChild(head);
+
+      var sets = document.createElement('div');
+      sets.className = 'sets';
+      for (var i = 0; i < EXERCISE_SETS; i += 1) {
+        sets.appendChild(makeSetRow(day, exercise, i, Array.isArray(saved.sets) ? saved.sets[i] : null));
+      }
+      if (!checked) setRowDisabled(sets, true);
+      article.appendChild(sets);
+
+      var previous = lastFor(exercise.id);
+      if (previous && Array.isArray(previous.sets)) {
+        var previousText = document.createElement('div');
+        previousText.className = 'previous';
+        var reps = previous.sets.map(function (set) { return set && set.reps !== '' && set.reps != null ? set.reps : '—'; }).join(' / ');
+        previousText.textContent = 'Última sesión guardada: ' + reps + ' reps por serie.';
+        article.appendChild(previousText);
+      }
+      var note = document.createElement('div');
+      note.className = 'exercise-note';
+      note.textContent = exercise.note + ' La carga de registro empieza vacía; apunta el peso que uses.';
+      article.appendChild(note);
+
+      selector.addEventListener('change', function () {
+        var draft = getDraft();
+        if (!isObject(draft.entries[exercise.id])) {
+          draft.entries[exercise.id] = { id: exercise.id, name: exercise.name, unit: exercise.unit, sets: [], enabled: selector.checked };
+        } else {
+          draft.entries[exercise.id].enabled = selector.checked;
+        }
+        article.classList.toggle('excluded', !selector.checked);
+        setRowDisabled(sets, !selector.checked);
+        persist('Borrador guardado automáticamente en este navegador.');
+        updateProgress();
+      });
+      return article;
+    }
+
+    function render() {
+      var day = currentDay();
+      var draft = getDraft();
+      $('#dayTitle').textContent = day.title;
+      $('#daySubtitle').textContent = day.subtitle;
+      $('#dayBadge').textContent = day.name.toUpperCase();
+      renderTabs();
+      var list = $('#exerciseList');
+      list.replaceChildren();
+      day.exercises.forEach(function (exercise) { list.appendChild(renderExercise(day, exercise, draft)); });
+      $('#sessionDate').value = draft.date || today();
+      $('#sessionDate').onchange = function () {
+        var currentDraft = getDraft();
+        currentDraft.date = $('#sessionDate').value || today();
+        persist('Borrador guardado automáticamente en este navegador.');
+      };
+      updateProgress();
+      renderHistory();
+      renderMeasurements();
+    }
+
+    function updateProgress() {
+      var day = currentDay();
+      var draft = getDraft();
+      var count = 0;
+      var canSave = false;
+      day.exercises.forEach(function (exercise) {
+        var entry = draft.entries[exercise.id];
+        if (!isObject(entry) || entry.enabled === false) return;
+        var hasReps = false;
+        (Array.isArray(entry.sets) ? entry.sets : []).forEach(function (set) {
+          if (!isObject(set)) return;
+          if (set.reps !== '' && set.reps != null) hasReps = true;
+          if ((set.reps !== '' && set.reps != null) || (set.weight !== '' && set.weight != null) || (set.rir !== '' && set.rir != null)) canSave = true;
+        });
+        if (hasReps) count += 1;
+      });
+      $('#progress').textContent = count + ' de ' + day.exercises.length + ' ejercicios con reps';
+      $('#saveWorkout').disabled = !canSave;
+    }
+
+    function saveWorkout() {
+      var day = currentDay();
+      var draft = getDraft();
+      var entries = [];
+      day.exercises.forEach(function (exercise) {
+        var entry = draft.entries[exercise.id];
+        if (!isObject(entry) || entry.enabled === false) return;
+        var hasValue = (Array.isArray(entry.sets) ? entry.sets : []).some(function (set) {
+          return isObject(set) && ((set.weight !== '' && set.weight != null) || (set.reps !== '' && set.reps != null) || (set.rir !== '' && set.rir != null));
+        });
+        if (!hasValue) return;
+        var sets = [];
+        for (var i = 0; i < EXERCISE_SETS; i += 1) {
+          var set = Array.isArray(entry.sets) ? entry.sets[i] : null;
+          sets.push(isObject(set) ? { weight: set.weight || '', reps: set.reps || '', rir: set.rir || '' } : { weight: '', reps: '', rir: '' });
+        }
+        entries.push({ id: exercise.id, name: exercise.name, unit: exercise.unit, sets: sets });
+      });
+      if (!entries.length) {
+        toast('Registra al menos una serie de un ejercicio incluido.');
+        return;
+      }
+      state.history.unshift({
+        id: makeId(),
+        dayId: day.id,
+        day: day.name,
+        title: day.title,
+        date: draft.date || today(),
+        savedAt: new Date().toISOString(),
+        entries: entries
+      });
+      state.drafts[day.id] = { date: today(), entries: {} };
+      persist('Sesión guardada en este navegador.');
+      render();
+      toast('Sesión guardada localmente.');
+    }
+
+    function appendEmpty(element, text) {
+      var empty = document.createElement('div');
+      empty.className = 'empty';
+      empty.textContent = text;
+      element.replaceChildren(empty);
+    }
+
+    function renderHistory() {
+      var list = $('#historyList');
+      list.replaceChildren();
+      if (!state.history.length) {
+        appendEmpty(list, 'Aún no hay sesiones guardadas.');
+        return;
+      }
+      state.history.slice(0, 10).forEach(function (record) {
+        var item = document.createElement('div');
+        item.className = 'history-item';
+        var head = document.createElement('div');
+        head.className = 'history-head';
+        var label = document.createElement('div');
+        var strong = document.createElement('strong');
+        strong.textContent = record.day || 'Sesión';
+        var date = document.createElement('span');
+        date.textContent = String(record.date || '') + ' · ' + (record.entries || []).length + ' ejercicios';
+        label.appendChild(strong);
+        label.appendChild(document.createElement('br'));
+        label.appendChild(date);
+        var remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'delete';
+        remove.textContent = 'Borrar';
+        remove.setAttribute('aria-label', 'Borrar sesión del ' + (record.date || ''));
+        remove.addEventListener('click', function () {
+          if (!window.confirm('¿Borrar esta sesión del historial local?')) return;
+          state.history = state.history.filter(function (candidate) { return candidate.id !== record.id; });
+          persist();
+          renderHistory();
+          toast('Sesión borrada del historial local.');
+        });
+        head.appendChild(label);
+        head.appendChild(remove);
+        item.appendChild(head);
+        var details = document.createElement('details');
+        var summary = document.createElement('summary');
+        summary.textContent = 'Ver ejercicios y series';
+        var ul = document.createElement('ul');
+        (Array.isArray(record.entries) ? record.entries : []).forEach(function (entry) {
+          var li = document.createElement('li');
+          var parts = (Array.isArray(entry.sets) ? entry.sets : []).map(function (set) {
+            var text = [];
+            if (set && set.weight !== '') text.push(set.weight + ' ' + (entry.unit || 'kg'));
+            if (set && set.reps !== '') text.push(set.reps + ' reps');
+            if (set && set.rir !== '') text.push('RIR ' + set.rir);
+            return text.length ? text.join(' · ') : '—';
+          });
+          li.textContent = entry.name + ': ' + parts.join(' / ');
+          ul.appendChild(li);
+        });
+        details.appendChild(summary);
+        details.appendChild(ul);
+        item.appendChild(details);
+        list.appendChild(item);
+      });
+    }
+
+    function renderMeasurements() {
+      var host = $('#measurementTable');
+      var rows = state.measurements.slice().sort(function (a, b) { return String(b.date).localeCompare(String(a.date)); });
+      if (!rows.length) {
+        appendEmpty(host, 'Aún no hay medidas guardadas.');
+        return;
+      }
+      var table = document.createElement('table');
+      table.className = 'data-table';
+      var head = document.createElement('thead');
+      var headerRow = document.createElement('tr');
+      ['Fecha', 'Peso · kg', 'Estatura · cm', 'Grasa · %', ''].forEach(function (value) {
+        var th = document.createElement('th');
+        th.textContent = value;
+        headerRow.appendChild(th);
+      });
+      head.appendChild(headerRow);
+      var body = document.createElement('tbody');
+      rows.forEach(function (measurement) {
+        var row = document.createElement('tr');
+        [measurement.date, measurement.weightKg, measurement.heightCm, measurement.bodyFatPct].forEach(function (value) {
+          var td = document.createElement('td');
+          td.textContent = value === undefined || value === null || value === '' ? '—' : String(value);
+          row.appendChild(td);
+        });
+        var action = document.createElement('td');
+        var remove = document.createElement('button');
+        remove.type = 'button';
+        remove.className = 'delete';
+        remove.textContent = 'Borrar';
+        remove.setAttribute('aria-label', 'Borrar medidas del ' + measurement.date);
+        remove.addEventListener('click', function () {
+          if (!window.confirm('¿Borrar estas medidas del historial local?')) return;
+          state.measurements = state.measurements.filter(function (item) { return item.id !== measurement.id; });
+          persist();
+          renderMeasurements();
+          toast('Medidas borradas del historial local.');
+        });
+        action.appendChild(remove);
+        row.appendChild(action);
+        body.appendChild(row);
+      });
+      table.appendChild(head);
+      table.appendChild(body);
+      host.replaceChildren(table);
+    }
+
+    function saveMeasurement() {
+      var date = $('#metricDate').value || today();
+      var weightKg = $('#metricWeight').value.trim();
+      var heightCm = $('#metricHeight').value.trim();
+      var bodyFatPct = $('#metricBodyFat').value.trim();
+      if (!weightKg && !heightCm && !bodyFatPct) {
+        toast('Añade al menos una medida.');
+        return;
+      }
+      if ((weightKg && Number(weightKg) < 0) || (heightCm && Number(heightCm) <= 0) || (bodyFatPct && (Number(bodyFatPct) < 0 || Number(bodyFatPct) > 75))) {
+        toast('Revisa los valores de las medidas.');
+        return;
+      }
+      var found = state.measurements.find(function (item) { return item.date === date; });
+      var measurement = { id: found ? found.id : makeId(), date: date, weightKg: weightKg, heightCm: heightCm, bodyFatPct: bodyFatPct };
+      if (found) {
+        state.measurements = state.measurements.map(function (item) { return item.date === date ? measurement : item; });
+      } else {
+        state.measurements.push(measurement);
+      }
+      persist();
+      $('#metricWeight').value = '';
+      $('#metricHeight').value = '';
+      $('#metricBodyFat').value = '';
+      $('#metricDate').value = today();
+      renderMeasurements();
+      toast('Medidas guardadas en este navegador.');
+    }
+
+    function csvCell(value) {
+      var text = String(value == null ? '' : value);
+      if (/^[\s]*[=+\-@]/.test(text)) text = "'" + text;
+      return '"' + text.replace(/"/g, '""') + '"';
+    }
+
+    function downloadBlob(blob, filename) {
+      var url = URL.createObjectURL(blob);
+      var link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+    }
+
+    function exportCsv() {
+      var header = ['Tipo de registro', 'Fecha', 'Día', 'Sesión', 'Ejercicio', 'Serie', 'Carga', 'Unidad', 'Repeticiones', 'RIR', 'Peso corporal · kg', 'Estatura · cm', 'Grasa corporal · %'];
+      var rows = [];
+      state.history.forEach(function (record) {
+        (Array.isArray(record.entries) ? record.entries : []).forEach(function (entry) {
+          (Array.isArray(entry.sets) ? entry.sets : []).forEach(function (set, index) {
+            if (!set || (set.weight === '' && set.reps === '' && set.rir === '')) return;
+            rows.push(['ENTRENAMIENTO', record.date, record.day, record.title, entry.name, index + 1, set.weight, entry.unit, set.reps, set.rir, '', '', '']);
+          });
+        });
+      });
+      state.measurements.forEach(function (measurement) {
+        rows.push(['MEDIDA', measurement.date, '', '', '', '', '', '', '', '', measurement.weightKg, measurement.heightCm, measurement.bodyFatPct]);
+      });
+      rows.sort(function (a, b) { return String(a[1]).localeCompare(String(b[1])) || String(a[0]).localeCompare(String(b[0])); });
+      var content = '\uFEFF' + [header].concat(rows).map(function (row) { return row.map(csvCell).join(';'); }).join('\r\n');
+      downloadBlob(new Blob([content], { type: 'text/csv;charset=utf-8' }), 'seguimiento_entrenamiento.csv');
+      toast(rows.length ? 'CSV acumulado descargado.' : 'CSV vacío descargado; guarda sesiones o medidas para acumular datos.');
+    }
+
+    function exportJson() {
+      var backup = { format: 'gym-tracker-backup', version: 1, exportedAt: new Date().toISOString(), data: state };
+      downloadBlob(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json;charset=utf-8' }), 'respaldo-gym-tracker.json');
+      toast('Respaldo JSON descargado.');
+    }
+
+    function importJsonFile(file) {
+      return file.text().then(function (text) {
+        var backup = JSON.parse(text);
+        var incoming = isObject(backup) && isObject(backup.data) ? backup.data : backup;
+        if (!isObject(incoming) || !isObject(incoming.drafts) || !Array.isArray(incoming.history) || !Array.isArray(incoming.measurements)) {
+          throw new Error('Formato no válido');
+        }
+        if (!window.confirm('Importar este respaldo reemplazará el historial, borradores y medidas actuales de este navegador. ¿Continuar?')) return;
+        var settings = isObject(incoming.settings) ? incoming.settings : {};
+        state = {
+          drafts: incoming.drafts,
+          history: incoming.history,
+          measurements: incoming.measurements,
+          settings: {
+            restSeconds: clamp(Number(settings.restSeconds) || 90, 30, 600),
+            soundEnabled: settings.soundEnabled !== false,
+            notificationsEnabled: settings.notificationsEnabled === true
+          }
+        };
+        persist();
+        applyTimerSettings();
+        render();
+        toast('Respaldo restaurado en este navegador.');
+      });
+    }
+
+    function formatClock(seconds) {
+      var safe = Math.max(0, Math.floor(seconds));
+      return String(Math.floor(safe / 60)).padStart(2, '0') + ':' + String(safe % 60).padStart(2, '0');
+    }
+
+    function showTimer() { $('#timerDisplay').textContent = formatClock(timerLeft); }
+
+    function prepareAudio() {
+      if (!state.settings.soundEnabled) return;
+      try {
+        var Context = window.AudioContext || window.webkitAudioContext;
+        if (Context && !audioContext) audioContext = new Context();
+        if (audioContext && audioContext.state === 'suspended') audioContext.resume();
+      } catch (error) {
+        audioContext = null;
+      }
+    }
+
+    function playAlert() {
+      if (!state.settings.soundEnabled) return;
+      try {
+        var Context = window.AudioContext || window.webkitAudioContext;
+        if (!Context) return;
+        if (!audioContext) audioContext = new Context();
+        if (audioContext.state === 'suspended') audioContext.resume();
+        var oscillator = audioContext.createOscillator();
+        var gain = audioContext.createGain();
+        var start = audioContext.currentTime;
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(660, start);
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.linearRampToValueAtTime(0.045, start + 0.08);
+        gain.gain.setValueAtTime(0.045, start + 1.8);
+        gain.gain.linearRampToValueAtTime(0.0001, start + 2);
+        oscillator.connect(gain);
+        gain.connect(audioContext.destination);
+        oscillator.start(start);
+        oscillator.stop(start + 2);
+      } catch (error) {
+        // El temporizador sigue funcionando aunque el navegador no permita reproducir sonido.
+      }
+    }
+
+    function finishTimer() {
+      clearInterval(timerId);
+      timerId = null;
+      timerLeft = 0;
+      showTimer();
+      playAlert();
+      toast('Descanso terminado.');
+      if (state.settings.notificationsEnabled && 'Notification' in window && Notification.permission === 'granted') {
+        try { new Notification('Descanso terminado', { body: 'Tu temporizador de descanso llegó a cero.' }); } catch (error) {}
+      }
+    }
+
+    function startTimer(seconds) {
+      var duration = clamp(Number(seconds) || state.settings.restSeconds, 30, 600);
+      clearInterval(timerId);
+      timerId = null;
+      timerLeft = duration;
+      state.settings.restSeconds = duration;
+      $('#timerDuration').value = String(duration);
+      persist();
+      showTimer();
+      prepareAudio();
+      timerId = setInterval(function () {
+        timerLeft -= 1;
+        showTimer();
+        if (timerLeft <= 0) finishTimer();
+      }, 1000);
+    }
+
+    function stopTimer() {
+      clearInterval(timerId);
+      timerId = null;
+      timerLeft = state.settings.restSeconds;
+      showTimer();
+    }
+
+    function applyTimerSettings() {
+      $('#timerDuration').value = String(state.settings.restSeconds);
+      $('#soundEnabled').checked = state.settings.soundEnabled;
+      timerLeft = state.settings.restSeconds;
+      showTimer();
+      updateNotificationStatus();
+      render();
+    }
+
+    function updateNotificationStatus() {
+      var button = $('#notifyButton');
+      var status = $('#notifyStatus');
+      if (!('Notification' in window)) {
+        button.disabled = true;
+        status.textContent = 'Este navegador no ofrece notificaciones web.';
+        return;
+      }
+      button.disabled = false;
+      if (Notification.permission === 'granted' && state.settings.notificationsEnabled) {
+        button.textContent = 'Notificaciones activadas';
+        status.textContent = 'Recibirás un aviso cuando termine el descanso.';
+      } else if (Notification.permission === 'denied') {
+        button.textContent = 'Permiso bloqueado en el navegador';
+        status.textContent = 'Puedes cambiarlo en los permisos del sitio si lo deseas.';
+      } else {
+        button.textContent = 'Activar notificaciones';
+        status.textContent = 'Notificaciones desactivadas.';
+      }
+    }
+
+    function enableNotifications() {
+      if (!('Notification' in window)) {
+        toast('Este navegador no ofrece notificaciones web.');
+        return;
+      }
+      if (Notification.permission === 'granted') {
+        state.settings.notificationsEnabled = true;
+        persist();
+        updateNotificationStatus();
+        toast('Notificaciones activadas.');
+        return;
+      }
+      if (Notification.permission === 'denied') {
+        updateNotificationStatus();
+        toast('El permiso está bloqueado en la configuración del navegador.');
+        return;
+      }
+      Notification.requestPermission().then(function (permission) {
+        state.settings.notificationsEnabled = permission === 'granted';
+        persist();
+        updateNotificationStatus();
+        toast(permission === 'granted' ? 'Notificaciones activadas.' : 'No se activaron las notificaciones.');
+      }).catch(function () {
+        state.settings.notificationsEnabled = false;
+        persist();
+        updateNotificationStatus();
+        toast('No se pudo activar el permiso de notificaciones.');
+      });
+    }
+
+    function setTimerDuration(seconds) {
+      var value = clamp(Number(seconds) || 90, 30, 600);
+      clearInterval(timerId);
+      timerId = null;
+      state.settings.restSeconds = value;
+      timerLeft = value;
+      $('#timerDuration').value = String(value);
+      persist();
+      showTimer();
+      renderExerciseRestLabels();
+    }
+
+    function renderExerciseRestLabels() {
+      document.querySelectorAll('.rest-btn').forEach(function (button) {
+        button.textContent = 'Descanso ' + formatClock(state.settings.restSeconds);
+        button.setAttribute('aria-label', 'Iniciar descanso de ' + state.settings.restSeconds + ' segundos');
+      });
+    }
+
+    $('#saveWorkout').addEventListener('click', saveWorkout);
+    $('#saveMetric').addEventListener('click', saveMeasurement);
+    $('#exportCsvBtn').addEventListener('click', exportCsv);
+    $('#exportBtn').addEventListener('click', exportJson);
+    $('#timerStart').addEventListener('click', function () { startTimer($('#timerDuration').value); });
+    $('#timerStop').addEventListener('click', stopTimer);
+    $('#notifyButton').addEventListener('click', enableNotifications);
+    $('#soundEnabled').addEventListener('change', function () {
+      state.settings.soundEnabled = $('#soundEnabled').checked;
+      persist();
+    });
+    $('#timerDuration').addEventListener('change', function () { setTimerDuration($('#timerDuration').value); });
+    document.querySelectorAll('[data-timer]').forEach(function (button) {
+      button.addEventListener('click', function () { setTimerDuration(button.dataset.timer); });
+    });
+    $('#importBtn').addEventListener('click', function () { $('#importFile').click(); });
+    $('#importFile').addEventListener('change', function (event) {
+      var file = event.target.files && event.target.files[0];
+      if (!file) return;
+      importJsonFile(file).catch(function () {
+        window.alert('No se pudo leer ese respaldo. Elige un JSON exportado desde este tracker.');
+      }).finally(function () { event.target.value = ''; });
+    });
+
+    $('#sessionDate').value = today();
+    $('#metricDate').value = today();
+    applyTimerSettings();
+  }());
+  </script>
+</body>
+</html>
